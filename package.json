@@ -1,0 +1,38 @@
+{
+  "name": "fish-tts-lab",
+  "version": "0.1.0",
+  "description": "fish.audio / OpenRouter TTS 音频测试工具：WebUI 调参、试听、下载，可独立运行或作为 DSHT 侧边栏插件。",
+  "type": "module",
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "node standalone.js"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "dsh-better-sidebar"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "fish.audio",
+    "openrouter",
+    "tts",
+    "voice-clone",
+    "dsh",
+    "dsh-tavern"
+  ],
+  "license": "MIT"
+}

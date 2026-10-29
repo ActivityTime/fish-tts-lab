@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fish TTS Lab · 鱼音色测试</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <h1>Fish TTS Lab</h1>
+        <span class="sub">fish.audio / OpenRouter 音色测试台</span>
+      </header>
+
+      <main class="layout">
+        <!-- 左：表单 -->
+        <section class="panel form-panel">
+          <div class="field">
+            <label class="lbl">后端</label>
+            <div class="radio-row">
+              <label><input type="radio" name="backend" value="fish" checked /> fish.audio 原生</label>
+              <label><input type="radio" name="backend" value="openrouter" /> OpenRouter</label>
+            </div>
+          </div>
+
+          <div class="field group-fish">
+            <label class="lbl" for="fishKey">fish.audio API Key</label>
+            <input id="fishKey" type="password" placeholder="Bearer 之后的部分" autocomplete="off" />
+          </div>
+          <div class="field group-fish">
+            <label class="lbl" for="fishUrl">fish.audio API 端点 URL</label>
+            <input id="fishUrl" type="text" value="https://api.fish.audio/v1/tts" autocomplete="off" />
+            <p class="hint">默认官方端点；可改自建代理或 fishaudio.org 兼容端点。</p>
+          </div>
+          <div class="field group-or" hidden>
+            <label class="lbl" for="orKey">OpenRouter API Key</label>
+            <input id="orKey" type="password" placeholder="sk-or-v1-..." autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="voiceId">Voice ID / Reference ID</label>
+            <input id="voiceId" type="text" placeholder="克隆音色后得到的 voice id" />
+            <p class="hint">留空也可：上传下方参考音频做即时克隆（input_references）。</p>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="text">文本（支持 [tag] 情感标签）</label>
+            <textarea id="text" rows="5" placeholder="あらあら、ずいぶん熱心ですこと&#10;可写 [chuckle] 等内联情感标签"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="lbl">参考音频（即时克隆，可选）</label>
+            <input id="refFile" type="file" accept="audio/*" />
+            <div class="row">
+              <span id="refInfo" class="hint">未选择</span>
+              <button id="refClear" type="button" class="btn-mini">清除</button>
+            </div>
+            <input id="refTranscript" type="text" placeholder="可选：该音频对应文本 transcript" />
+          </div>
+
+          <div class="grid3">
+            <div class="field">
+              <label class="lbl" for="format">格式</label>
+              <select id="format">
+                <option value="mp3" selected>mp3</option>
+                <option value="wav">wav</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="lbl" for="bitrate">码率 kbps</label>
+              <input id="bitrate" type="number" value="128" min="32" max="320" />
+            </div>
+            <div class="field">
+              <label class="lbl" for="sampleRate">采样率</label>
+              <select id="sampleRate">
+                <option value="44100" selected>44100</option>
+                <option value="48000">48000</option>
+                <option value="32000">32000</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid3">
+            <div class="field">
+              <label class="lbl" for="speed">语速</label>
+              <input id="speed" type="number" value="1" step="0.05" min="0.25" max="3" />
+            </div>
+            <div class="field">
+              <label class="lbl" for="latency">延迟</label>
+              <input id="latency" type="text" placeholder="留空=默认" />
+              <span class="hint">fish 原生（normal/low 等）</span>
+            </div>
+            <div class="field group-fish">
+              <label class="lbl" for="normalize">normalize</label>
+              <label class="chk"><input id="normalize" type="checkbox" checked /> 开启</label>
+            </div>
+          </div>
+
+          <div class="field group-fish">
+            <label class="lbl" for="fishModel">fish.audio 模型（model 头）</label>
+            <select id="fishModel">
+              <option value="" selected>默认引擎（不指定）</option>
+              <option value="s2.1-pro">s2.1-pro</option>
+              <option value="s2.1-pro-free">s2.1-pro-free</option>
+              <option value="s2.1-flash">s2.1-flash</option>
+              <option value="s2.1-pro-flash">s2.1-pro-flash</option>
+              <option value="s2-pro">s2-pro</option>
+              <option value="s1">s1</option>
+            </select>
+            <p class="hint">经 <code>model:</code> HTTP 头下发；仅对支持 fish 兼容契约的端点生效。</p>
+          </div>
+
+          <div class="field group-or" hidden>
+            <label class="lbl" for="model">OpenRouter 模型</label>
+            <input id="model" type="text" value="fish-audio/s2.1-pro-free:free" />
+          </div>
+          <div class="field group-or" hidden>
+            <label class="lbl" for="instructions">instructions（角色/语气指令，可选）</label>
+            <textarea id="instructions" rows="2" placeholder="Speak in a calm, elegant tone..."></textarea>
+          </div>
+
+          <div class="actions">
+            <button id="genBtn" type="button" class="btn-primary">▶ 生成</button>
+            <label class="chk"><input id="autoPlay" type="checkbox" /> 完成后自动播放</label>
+            <span id="status" class="status"></span>
+          </div>
+        </section>
+
+        <!-- 右：播放 + 历史 -->
+        <section class="panel result-panel">
+          <h2>试听</h2>
+          <audio id="player" controls preload="auto" style="width: 100%"></audio>
+          <div class="row">
+            <a id="dl" class="btn-mini" hidden download>⬇ 下载当前音频</a>
+            <span id="meta" class="hint"></span>
+          </div>
+
+          <h2>历史（本地保存）</h2>
+          <ul id="history" class="history"></ul>
+          <p id="historyEmpty" class="hint">暂无记录</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        本机服务 · 请求经 localhost 转发至 fish.audio / OpenRouter · API Key 仅存本机 localStorage
+      </footer>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

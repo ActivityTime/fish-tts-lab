@@ -1,0 +1,5 @@
+# fish-tts-lab 插件挂载配置（bundle 层）
+# 官方标准格式：insert 行，id 为行标识符，name 解析为 npm 包入口（package.json#main）
+- insert:
+    - id: fish-tts-lab
+      name: fish-tts-lab
